@@ -9,10 +9,12 @@ Office 365**, télécharge et archive les pièces jointes, les parse avec
 O365 (shared mailbox)
    │  Microsoft Graph (app-only / client credentials)
    ▼
-parserdmarc ──► /data/attachments/…   (pièces jointes brutes archivées)
-   │         ──► /data/parsed/…        (rapports parsés en JSON)
+parserdmarc ──► /data/<domaine>/attachments/…  (pièces jointes brutes archivées)
+   │         ──► /data/<domaine>/parsed/…       (rapports parsés en JSON)
+   │            (stockage partitionné par domaine DMARC)
    │
    └──► :9797/metrics  ◄── Prometheus  ◄── Grafana
+        (métriques étiquetées par policy_domain)
 ```
 
 ## Fonctionnement
