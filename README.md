@@ -31,31 +31,80 @@ La déduplication s'appuie sur l'action de post-traitement **et** sur le
 `report_id` (mémorisé dans `/data/state/processed_reports.json`), ce qui évite
 tout double comptage même en cas de retraitement.
 
-## Pré-requis Azure (app registration)
+## Pré-requis Microsoft Entra ID (app registration)
 
 L'authentification utilise le flux **client credentials** (app-only), pérenne et
 sans mot de passe utilisateur.
 
-1. **Azure Portal → App registrations → New registration.** Notez le
-   **Application (client) ID** et le **Directory (tenant) ID**.
-2. **Certificates & secrets → New client secret.** Notez la valeur du secret.
-3. **API permissions → Add a permission → Microsoft Graph → Application
-   permissions → `Mail.ReadWrite`** (et `Mail.Read.Shared` si proposé), puis
-   **Grant admin consent**.
-4. **Recommandé — restreindre l'accès à la seule boîte DMARC** via *RBAC for
-   Applications* (sinon l'app peut lire toutes les boîtes du tenant). En
-   PowerShell Exchange Online :
+### 1. Créer l'app registration
 
-   ```powershell
-   New-ApplicationAccessPolicy `
-     -AppId <CLIENT_ID> `
-     -PolicyScopeGroupId dmarc@example.com `
-     -AccessRight RestrictAccess `
-     -Description "parserdmarc - DMARC mailbox only"
-   ```
+**Entra admin center** ([entra.microsoft.com](https://entra.microsoft.com)) →
+*Identity → Applications → App registrations → New registration*.
 
-   (ou la méthode plus récente *RBAC for Applications* / management role
-   assignment scopée sur le groupe contenant la boîte).
+| Champ | Valeur |
+|---|---|
+| **Name** | `parserdmarc` |
+| **Supported account types** | *Accounts in this organizational directory only (Single tenant)* |
+| **Redirect URI** | *(laisser vide)* |
+
+Sur la page *Overview*, notez l'**Application (client) ID** et le
+**Directory (tenant) ID**.
+
+### 2. Créer le secret
+
+*Certificates & secrets → Client secrets → New client secret* → expiration 12 ou
+24 mois. **Copiez immédiatement la valeur (`Value`)** — elle ne sera plus affichée.
+
+### 3. Permissions Graph (application)
+
+*API permissions → Add a permission → Microsoft Graph → **Application
+permissions*** :
+
+| Permission | Pourquoi |
+|---|---|
+| **`Mail.ReadWrite`** | Lire les mails **et** les déplacer/marquer-lus/supprimer après traitement |
+
+Puis **Grant admin consent for \<tenant\>** (le statut doit passer au vert ✅).
+
+> ⚠️ Choisir **Application** (pas *Delegated*). Si `POST_PROCESS_ACTION=none`,
+> `Mail.Read` suffit. Une permission *application* donne accès à **toutes** les
+> boîtes du tenant → d'où la restriction à l'étape 4.
+
+### 4. Restreindre à la seule boîte (Exchange Online PowerShell)
+
+Exemple pour la boîte **`abuse@example.com`**. Remplacez `<CLIENT_ID>` par
+l'Application (client) ID.
+
+```powershell
+# Connexion
+Connect-ExchangeOnline -UserPrincipalName admin@example.com
+
+# 1. Groupe de sécurité mail-enabled contenant la boîte cible
+New-DistributionGroup -Name "DMARC-App-Scope" -Type Security `
+  -PrimarySmtpAddress dmarc-app-scope@example.com `
+  -Members abuse@example.com
+
+# 2. L'app ne peut accéder QU'aux membres du groupe
+New-ApplicationAccessPolicy -AppId "<CLIENT_ID>" `
+  -PolicyScopeGroupId dmarc-app-scope@example.com `
+  -AccessRight RestrictAccess `
+  -Description "parserdmarc - acces restreint a abuse@example.com"
+
+# 3. Vérifier (Granted dans le scope, Denied en dehors)
+Test-ApplicationAccessPolicy -Identity abuse@example.com  -AppId "<CLIENT_ID>"
+Test-ApplicationAccessPolicy -Identity admin@example.com  -AppId "<CLIENT_ID>"
+```
+
+> La propagation peut prendre jusqu'à ~30 min. Pour ajouter une autre boîte au
+> périmètre : `Add-DistributionGroupMember -Identity dmarc-app-scope@example.com -Member autre@example.com`.
+
+### Droits requis pour le paramétrage
+
+| Action | Rôle nécessaire |
+|---|---|
+| Créer l'app registration | *Application Developer* (ou tout utilisateur si non restreint) |
+| **Grant admin consent** (étape 3) | *Global Administrator* ou *Privileged Role Administrator* |
+| Application Access Policy (étape 4) | *Exchange Administrator* |
 
 > Les rapports DMARC arrivent dans la boîte partagée. Avec les permissions
 > *application*, on cible la boîte via `users/{GRAPH_MAILBOX}` — pas besoin de
@@ -70,7 +119,7 @@ Copiez `.env.example` vers `.env` et renseignez au minimum :
 | `GRAPH_TENANT_ID` | Directory (tenant) ID |
 | `GRAPH_CLIENT_ID` | Application (client) ID |
 | `GRAPH_CLIENT_SECRET` | Secret de l'app registration |
-| `GRAPH_MAILBOX` | Adresse SMTP de la boîte partagée (ex. `dmarc@example.com`) |
+| `GRAPH_MAILBOX` | Adresse SMTP de la boîte partagée (ex. `abuse@example.com`) |
 
 Principales options (voir `.env.example` pour la liste complète) :
 
