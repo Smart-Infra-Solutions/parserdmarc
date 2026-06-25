@@ -224,35 +224,6 @@ taux de conformité, volumes par résultat DMARC et par disposition, alignement
 DKIM/SPF, top des sources en échec (nécessite `EXPORT_SOURCE_IP_METRICS=true`) et
 détail par domaine.
 
-## Intégration continue (Woodpecker CI)
-
-Le répertoire `.woodpecker/` contient deux workflows :
-
-| Fichier | Déclencheur | Rôle |
-|---|---|---|
-| `test.yml` | `push`, `pull_request` | Compilation Python, lint (`ruff` E9/F), validation des JSON Grafana, smoke-test des imports avec les vraies dépendances |
-| `docker.yml` | `push`/`pull_request` (dry-run) et `tag` (publication) | Build de l'image avec `plugin-docker-buildx` |
-
-### Configuration
-
-1. **Activer le dépôt** dans l'UI Woodpecker (il détecte automatiquement le
-   répertoire `.woodpecker/`).
-2. **Publication de l'image** (workflow `publish`, sur tag) — l'image est poussée
-   vers **Docker Hub** : `docker.io/smartinfrasolutions/parserdmarc`. Le compte
-   (`username: smartinfrasolutions`) est en clair dans `docker.yml` ; seul le
-   token est un **secret** à créer dans *Settings → Secrets* du dépôt :
-
-   | Secret | Valeur |
-   |---|---|
-   | `docker_token` | un *access token* Docker Hub (*Account Settings → Security → New Access Token*) |
-
-3. **Publier une version** : poussez un tag git (`git tag v1.0.0 && git push --tags`).
-   Le step `build` (dry-run) tourne sur push/PR pour vérifier que l'image se
-   construit, sans rien publier.
-
-> Aucun secret n'est nécessaire tant que vous ne publiez pas : les workflows
-> `test.yml` et le step `build` (dry-run) fonctionnent en l'état.
-
 ## Stockage
 
 Les fichiers sont **partitionnés par domaine** (le domaine de la politique DMARC
