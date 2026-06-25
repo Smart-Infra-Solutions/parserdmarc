@@ -1,0 +1,14 @@
+services:
+  parserdmarc:
+    build: .
+    image: parserdmarc:latest
+    container_name: parserdmarc
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "9797:9797"        # Prometheus scrape target -> /metrics
+    volumes:
+      - dmarc-data:/data   # raw attachments, parsed JSON and dedupe state
+
+volumes:
+  dmarc-data:

@@ -1,0 +1,29 @@
+# Vérifications légères sur chaque push / pull request.
+when:
+  - event: [push, pull_request]
+
+steps:
+  - name: syntax
+    image: python:3.12-slim
+    commands:
+      - python -m compileall -q app
+
+  - name: lint
+    image: python:3.12-slim
+    commands:
+      - pip install --no-cache-dir ruff
+      # E9 = erreurs de syntaxe, F = pyflakes (imports inutiles / noms indéfinis).
+      # On évite volontairement les règles de style (E501 longueur de ligne, etc.).
+      - ruff check --select E9,F app
+
+  - name: dashboard-json
+    image: python:3.12-slim
+    commands:
+      - python -c "import json, glob; [json.load(open(f, encoding='utf-8')) for f in glob.glob('grafana/**/*.json', recursive=True)]"
+
+  - name: imports
+    image: python:3.12-slim
+    commands:
+      # Installe les vraies dépendances et vérifie que tout le graphe d'imports charge.
+      - pip install --no-cache-dir -r requirements.txt
+      - python -c "import app.main"

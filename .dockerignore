@@ -1,0 +1,36 @@
+# Garde le contexte de build minimal : seuls app/ et requirements.txt sont copiés.
+
+# Git / VCS
+.git
+.gitattributes
+.gitignore
+
+# Secrets / config locale
+.env
+.env.*
+*.token
+.token
+
+# Données runtime (volume)
+data/
+
+# Docs & assets non nécessaires à l'image
+*.md
+.vscode/
+.idea/
+grafana/
+prometheus.example.yml
+docker-compose.yml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db

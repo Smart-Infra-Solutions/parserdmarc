@@ -1,0 +1,14 @@
+# Grafana dashboard provider — auto-loads JSON dashboards from the mounted folder.
+apiVersion: 1
+
+providers:
+  - name: parserdmarc
+    orgId: 1
+    folder: DMARC
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

@@ -1,0 +1,9 @@
+# Example scrape job — add this under `scrape_configs:` in your prometheus.yml.
+# If Prometheus runs in the same docker network, use the service name as host;
+# otherwise point at the Docker host IP / published port.
+scrape_configs:
+  - job_name: parserdmarc
+    scrape_interval: 60s
+    static_configs:
+      - targets:
+          - "parserdmarc:9797"   # or "host.docker.internal:9797" / "<host-ip>:9797"
