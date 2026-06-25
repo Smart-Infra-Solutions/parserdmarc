@@ -1,8 +1,13 @@
 # Build de l'image Docker (publication sur Docker Hub).
 #   - push/PR : build de vérification (dry-run, pas de publication)
 #   - tag     : build + publication vers docker.io/smartinfrasolutions/parserdmarc
+#
+# Ne démarre QUE si la pipeline `test` a réussi (depends_on).
 when:
   - event: [push, pull_request, tag]
+
+depends_on:
+  - test
 
 steps:
   - name: build

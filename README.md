@@ -1,5 +1,7 @@
 # parserdmarc
 
+[![status-badge](https://ci.si.solutions/api/badges/16/status.svg)](https://ci.si.solutions/repos/16)
+
 Container qui récupère les **rapports DMARC** d'une **boîte aux lettres partagée
 Office 365**, télécharge et archive les pièces jointes, les parse avec
 [`parsedmarc`](https://github.com/domainaware/parsedmarc) et expose des

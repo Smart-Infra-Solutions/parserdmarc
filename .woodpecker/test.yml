@@ -1,6 +1,7 @@
-# Vérifications légères sur chaque push / pull request.
+# Vérifications légères sur chaque push / pull request / tag.
+# Le build Docker (docker.yml) dépend de cette pipeline (depends_on: test).
 when:
-  - event: [push, pull_request]
+  - event: [push, pull_request, tag]
 
 steps:
   - name: syntax
