@@ -1,6 +1,6 @@
-# Build de l'image Docker (publication sur Docker Hub).
-#   - push/PR : build de vérification (dry-run, pas de publication)
-#   - tag     : build + publication vers docker.io/smartinfrasolutions/parserdmarc
+# Build et publication de l'image Docker sur Docker Hub.
+#   - push sur main : publie l'image `latest`
+#   - tag           : publie l'image taguée (latest + version)
 #
 # Ne démarre QUE si la pipeline `test` a réussi (depends_on).
 when:
@@ -15,9 +15,15 @@ steps:
     settings:
       repo: smartinfrasolutions/parserdmarc
       platforms: linux/amd64
-      dry-run: true
+      # Publication de l'image `latest` à chaque push sur main.
+      tags:
+        - latest
+      username: smartinfrasolutions
+      password:
+        from_secret: docker_token
     when:
-      - event: [push, pull_request]
+      - event: push
+        branch: main
 
   - name: publish
     image: woodpeckerci/plugin-docker-buildx
