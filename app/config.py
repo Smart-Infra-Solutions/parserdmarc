@@ -46,6 +46,9 @@ class Config:
         self.storage_dir = env.get("STORAGE_DIR", "/data")
         self.save_attachments = _bool(env.get("SAVE_ATTACHMENTS"), True)
         self.save_parsed_json = _bool(env.get("SAVE_PARSED_JSON"), True)
+        # On startup, retry attachments previously kept under 'unparsed' (e.g.
+        # .xml.gz that failed before explicit gzip handling). Idempotent.
+        self.reprocess_unparsed = _bool(env.get("REPROCESS_UNPARSED"), True)
 
         # --- Parsing -------------------------------------------------------
         # Skip reverse-DNS / GeoIP lookups (faster, no outbound DNS needed).

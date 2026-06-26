@@ -46,6 +46,13 @@ def main():
     signal.signal(signal.SIGTERM, _shutdown)
     signal.signal(signal.SIGINT, _shutdown)
 
+    if cfg.reprocess_unparsed:
+        try:
+            processor.reprocess_unparsed()
+        except Exception as exc:  # backfill must never block normal polling
+            log.exception("Reprocessing of unparsed attachments failed: %s", exc)
+            metrics.PROCESSING_ERRORS.labels("reprocess").inc()
+
     while not stop.is_set():
         try:
             processor.poll_once()

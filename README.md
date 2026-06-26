@@ -24,12 +24,18 @@ parserdmarc ──► /data/<domaine>/attachments/…  (pièces jointes brutes a
 1. Toutes les `POLL_INTERVAL_SECONDS`, le service liste les messages **non lus**
    du dossier configuré de la boîte partagée via Microsoft Graph.
 2. Pour chaque message, il télécharge les pièces jointes (fichiers), les
-   **sauvegarde** sur le volume `/data`, puis les parse (zip/gz/xml gérés par
-   `parsedmarc`).
+   **sauvegarde** sur le volume `/data`, **décompresse** explicitement les
+   `.gz` / `.zip` (via la stdlib, tolérante aux flux gzip multi-membres) puis
+   parse le XML avec `parsedmarc`.
 3. Les rapports **agrégés** alimentent les compteurs Prometheus ; le JSON parsé
    est aussi sauvegardé.
 4. Le message est ensuite **déplacé** vers le dossier d'archive (configurable :
    `move` / `mark_read` / `delete` / `none`) pour ne pas être retraité.
+
+Toute pièce jointe illisible est conservée sous `unparsed/` (rien n'est jamais
+perdu). Au démarrage, si `REPROCESS_UNPARSED=true` (défaut), le service **rejoue**
+ces fichiers : ceux qui parsent désormais sont reclassés sous leur domaine,
+comptabilisés, puis retirés d'`unparsed/` ; l'opération est idempotente.
 
 La déduplication s'appuie sur l'action de post-traitement **et** sur le
 `report_id` (mémorisé dans `/data/state/processed_reports.json`), ce qui évite

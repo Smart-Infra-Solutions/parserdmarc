@@ -91,6 +91,35 @@ class Storage:
         log.debug("Saved attachment %s (%d bytes)", path, len(data))
         return path
 
+    def iter_unparsed_attachments(self):
+        """Yield (path, filename, received) for every file kept under 'unparsed'.
+
+        The received date is recovered from the YYYY/MM/DD path layout so a
+        reprocessed report lands in the same date bucket it originally arrived.
+        """
+        base = os.path.join(self.root, "unparsed", "attachments")
+        if not os.path.isdir(base):
+            return
+        for dirpath, _dirs, files in os.walk(base):
+            for name in sorted(files):
+                path = os.path.join(dirpath, name)
+                yield path, name, self._date_from_path(base, path)
+
+    @staticmethod
+    def _date_from_path(base, path):
+        parts = os.path.relpath(os.path.dirname(path), base).split(os.sep)
+        try:
+            return datetime(int(parts[0]), int(parts[1]), int(parts[2]),
+                            tzinfo=timezone.utc)
+        except (ValueError, IndexError):
+            return None
+
+    def remove_file(self, path):
+        try:
+            os.remove(path)
+        except OSError as exc:
+            log.warning("Could not remove %s: %s", path, exc)
+
     def save_parsed(self, domain, report_type, org, report_id, report, received=None):
         if not self.cfg.save_parsed_json:
             return None
