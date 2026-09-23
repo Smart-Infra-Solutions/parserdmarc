@@ -13,12 +13,12 @@ steps:
   - name: build
     image: woodpeckerci/plugin-docker-buildx
     settings:
-      repo: smartinfrasolutions/parserdmarc
+      repo: sisolutions/parserdmarc
       platforms: linux/amd64
       # Publication de l'image `latest` à chaque push sur main.
       tags:
         - latest
-      username: smartinfrasolutions
+      username: fsenchet
       password:
         from_secret: docker_token
     when:
