@@ -29,12 +29,12 @@ steps:
     image: woodpeckerci/plugin-docker-buildx
     settings:
       # Docker Hub est le registre par défaut du plugin : pas besoin de `registry`.
-      repo: smartinfrasolutions/parserdmarc
+      repo: sisolutions/parserdmarc
       platforms: linux/amd64,linux/arm64
       tags:
         - latest
         - ${CI_COMMIT_TAG}
-      username: smartinfrasolutions
+      username: fsenchet
       # Définissez le secret `docker_token` dans Woodpecker (Settings > Secrets) :
       # un access token Docker Hub (Account Settings > Security > New Access Token).
       password:
