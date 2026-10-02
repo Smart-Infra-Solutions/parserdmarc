@@ -1,4 +1,4 @@
-# Build et publication de l'image Docker sur Docker Hub.
+# Build et publication de l'image Docker sur GitHub Container Registry (ghcr.io).
 #   - push sur main : publie l'image `latest`
 #   - tag           : publie l'image taguée (latest + version)
 #
@@ -13,14 +13,16 @@ steps:
   - name: build
     image: woodpeckerci/plugin-docker-buildx
     settings:
-      repo: sisolutions/parserdmarc
+      registry: ghcr.io
+      # Le nom d'image ghcr.io doit être en minuscules.
+      repo: ghcr.io/smart-infra-solutions/parserdmarc
       platforms: linux/amd64
       # Publication de l'image `latest` à chaque push sur main.
       tags:
         - latest
-      username: fsenchet
+      username: Ch1ch1
       password:
-        from_secret: docker_token
+        from_secret: ghcr_token
     when:
       - event: push
         branch: main
@@ -28,16 +30,17 @@ steps:
   - name: publish
     image: woodpeckerci/plugin-docker-buildx
     settings:
-      # Docker Hub est le registre par défaut du plugin : pas besoin de `registry`.
-      repo: sisolutions/parserdmarc
+      registry: ghcr.io
+      repo: ghcr.io/smart-infra-solutions/parserdmarc
       platforms: linux/amd64,linux/arm64
       tags:
         - latest
         - ${CI_COMMIT_TAG}
-      username: fsenchet
-      # Définissez le secret `docker_token` dans Woodpecker (Settings > Secrets) :
-      # un access token Docker Hub (Account Settings > Security > New Access Token).
+      username: Ch1ch1
+      # Définissez le secret `ghcr_token` dans Woodpecker (Settings > Secrets) :
+      # un Personal Access Token GitHub (classic) avec le scope `write:packages`
+      # (Settings > Developer settings > Personal access tokens).
       password:
-        from_secret: docker_token
+        from_secret: ghcr_token
     when:
       - event: tag

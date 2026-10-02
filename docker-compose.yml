@@ -1,7 +1,7 @@
 services:
   parserdmarc:
     build: .
-    image: parserdmarc:latest
+    image: ghcr.io/smart-infra-solutions/parserdmarc:latest
     container_name: parserdmarc
     restart: unless-stopped
     env_file: .env

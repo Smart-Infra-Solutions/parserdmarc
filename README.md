@@ -153,7 +153,8 @@ Main options (see `.env.example` for the full list):
 
 ```bash
 cp .env.example .env      # then edit .env
-docker compose up -d --build
+docker compose pull       # image published on ghcr.io (or build locally: `docker compose up -d --build`)
+docker compose up -d
 docker compose logs -f
 curl http://localhost:9797/metrics
 ```
